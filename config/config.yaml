@@ -1,0 +1,7 @@
+deprek8:
+  kube:
+    resourcesFile: ./config/api.yaml
+  helm:
+    repository:
+      artifacthub:
+        apiBaseUrl: "https://artifacthub.io/api/v1"

@@ -1,0 +1,21 @@
+---
+
+project_name: deprek8
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - binary: "deprek8"
+    main: ./main.go
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -X github.com/eliasbokreta/deprek8/cmd.version={{.Version}}
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+snapshot:
+  name_template: "{{ .ShortCommit }}-SNAPSHOT"

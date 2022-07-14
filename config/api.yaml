@@ -1,0 +1,93 @@
+---
+resources:
+  Ingress:
+  - groupVersion: extensions/v1beta1
+    apiResource: ingresses
+    newGroupVersion: networking.k8s.io/v1
+    deprecationVersion: "1.14"
+    removalVersion: "1.22"
+    breakingChange: true
+    details: >
+      - spec.backend is renamed to spec.defaultBackend
+      - The backend serviceName field is renamed to service.name
+      - Numeric backend servicePort fields are renamed to service.port.number
+      - String backend servicePort fields are renamed to service.port.name
+      - pathType is now required for each specified path. Options are Prefix, Exact, and ImplementationSpecific. To match the undefined v1beta1 behavior, use ImplementationSpecific.
+
+  - groupVersion: networking.k8s.io/v1beta1
+    apiResource: ingressclasses
+    newGroupVersion: networking.k8s.io/v1
+    deprecationVersion: "1.19"
+    removalVersion: "1.22"
+    breakingChange: true
+    details: >
+      - spec.backend is renamed to spec.defaultBackend
+      - The backend serviceName field is renamed to service.name
+      - Numeric backend servicePort fields are renamed to service.port.number
+      - String backend servicePort fields are renamed to service.port.name
+      - pathType is now required for each specified path. Options are Prefix, Exact, and ImplementationSpecific. To match the undefined v1be
+
+  PodSecurityPolicy:
+  - groupVersion: policy/v1beta1
+    apiResource: podsecuritypolicies
+    newGroupVersion:
+    deprecationVersion: "1.20"
+    removalVersion: "1.25"
+    breakingChange: true
+    details: >
+      Will be removed in version 1.25 without replacement
+
+  PodDisruptionBudget:
+  - groupVersion: policy/v1beta1
+    apiResource: poddisruptionbudgets
+    newGroupVersion: policy/v1
+    deprecationVersion: "1.21"
+    removalVersion: "1.25"
+    breakingChange: true
+    details: >
+      An empty spec.selector ({}) written to a policy/v1 PodDisruptionBudget selects all pods in the namespace (in policy/v1beta1 an empty spec.selector selected no pods).
+      An unset spec.selector selects no pods in either API version.
+
+  CronJob:
+  - groupVersion: batch/v1beta1
+    apiResource: cronjobs
+    newGroupVersion: batch/v1
+    deprecationVersion: "1.21"
+    removalVersion: "1.25"
+    breakingChange: false
+    details: ""
+
+  HorizontalPodAutoscaler:
+  - groupVersion: autoscaling/v2beta1
+    apiResource: horizontalpodautoscalers
+    newGroupVersion: autoscaling/v2
+    deprecationVersion: "1.23"
+    removalVersion: "1.25"
+    breakingChange: false
+    details: ""
+
+  - groupVersion: autoscaling/v2beta2
+    apiResource: horizontalpodautoscalers
+    newGroupVersion: autoscaling/v2
+    deprecationVersion: "1.23"
+    removalVersion: "1.26"
+    breakingChange: false
+    details: ""
+
+  FlowSchema:
+  - groupVersion: flowcontrol.apiserver.k8s.io/v1beta
+    apiResource: flowschemas
+    newGroupVersion: flowcontrol.apiserver.k8s.io/v1beta2
+    deprecationVersion: "1.23"
+    removalVersion: "1.26"
+    breakingChange: false
+    details: ""
+
+  CSIStorageCapacity:
+  - groupVersion: storage.k8s.io/v1beta1
+    apiResource: csistoragecapacities
+    newGroupVersion: storage.k8s.io/v1
+    deprecationVersion: "1.24"
+    removalVersion: "1.27"
+    breakingChange: false
+    details: ""
