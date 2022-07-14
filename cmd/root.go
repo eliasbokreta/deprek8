@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/eliasbokreta/deprek8/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 )
@@ -27,6 +28,18 @@ var rootCmd = &cobra.Command{
 	Version: version,
 }
 
+var updateCmd = &cobra.Command{
+	Use:   "update",
+	Short: "update deprek8 version",
+	Long:  "update deprek8 to latest version",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := utils.SelfUpdate(version); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	},
+}
+
 var docCmd = &cobra.Command{
 	Use:    "doc",
 	Short:  "deprek8 cmd documentation",
@@ -43,6 +56,7 @@ var docCmd = &cobra.Command{
 func initCmd() {
 	cobra.OnInitialize()
 	deprek8CmdInit()
+	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(docCmd)
 }
 

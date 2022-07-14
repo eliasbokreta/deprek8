@@ -68,6 +68,12 @@ deprek8 context
 ```
 
 ## Setup
+Build locally :
 ```
 make build
+```
+
+Update the binary to the latest version :
+```
+deprek8 update
 ```
