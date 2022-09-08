@@ -1,7 +1,7 @@
 package kube
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -92,7 +92,7 @@ func (d *DeprecatedResources) GVRSParser(r KubeResource) bool {
 
 // Load the deprecated API resources from YAML
 func (d *DeprecatedResources) Load() {
-	file, err := ioutil.ReadFile(viper.GetString("deprek8.kube.resourcesFile"))
+	file, err := os.ReadFile(viper.GetString("deprek8.kube.resourcesFile"))
 	if err != nil {
 		log.Errorf("Could not open file: %v", err)
 		return
