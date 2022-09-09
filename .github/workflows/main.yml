@@ -29,6 +29,8 @@ jobs:
         run: make fmt-check
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
+        with:
+          args: --timeout=5m --config=.golangci.yml
       - name: Run unit tests
         run: make test
       - name: Build the application

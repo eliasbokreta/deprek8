@@ -3,7 +3,7 @@ package repositories
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -64,7 +64,7 @@ func (a *ArtifactHub) requestArtifacthub(chartName string) ([]byte, error) {
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error while reading request body: %w", err)
 	}

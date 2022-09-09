@@ -39,7 +39,6 @@ linters:
     - nakedret
     - nestif
     - nilerr
-    - nolintlint
     - prealloc
     - predeclared
     - promlinter
@@ -59,3 +58,4 @@ linters:
     - noctx
     - gochecknoglobals
     - gofumpt
+    - nolintlint
