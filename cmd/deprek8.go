@@ -59,23 +59,6 @@ var kubeCmd = &cobra.Command{
 	},
 }
 
-var contextCmd = &cobra.Command{
-	Use:   "context",
-	Short: "select Kube context",
-	Long:  "select a Kubernetes context",
-	Run: func(cmd *cobra.Command, args []string) {
-		cfg := deprek8.Config{
-			Action: "context",
-		}
-		d := deprek8.New(cfg)
-
-		if err := d.Run(); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	},
-}
-
 func deprek8CmdInit() {
 	rootCmd.AddCommand(helmCmd)
 
@@ -86,5 +69,4 @@ func deprek8CmdInit() {
 	helmCmd.Flags().StringVarP(&filterChartName, "filter-name", "n", "", "Filter Helm chart's name")
 
 	rootCmd.AddCommand(kubeCmd)
-	rootCmd.AddCommand(contextCmd)
 }
