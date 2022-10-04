@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	log "github.com/sirupsen/logrus"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
@@ -20,15 +18,25 @@ type KubeResource struct {
 }
 
 // List all resources
-func (k *Kube) List() (*[]KubeResource, error) {
+func List(kubeContext string) (*[]KubeResource, string, error) {
 	var deprecatedResources DeprecatedResources
 	deprecatedResources.Load()
 
-	k.ClientConfig.WarningHandler = rest.NoWarnings{}
-
-	dynamicClient, err := dynamic.NewForConfig(k.ClientConfig)
+	tmpKubeconfigPath, err := GenerateTemporaryKubeconfig(kubeContext)
 	if err != nil {
-		return nil, fmt.Errorf("could not create client config: %w", err)
+		return nil, "", fmt.Errorf("could not generate temporary kubeconfig: %w", err)
+	}
+
+	clientConfig, err := CreateConfigClient(tmpKubeconfigPath).ClientConfig()
+	if err != nil {
+		return nil, "", fmt.Errorf("could not get clientset: %w", err)
+	}
+
+	clientConfig.WarningHandler = rest.NoWarnings{}
+
+	dynamicClient, err := dynamic.NewForConfig(clientConfig)
+	if err != nil {
+		return nil, "", fmt.Errorf("could not create client config: %w", err)
 	}
 
 	gvrs := deprecatedResources.GVRSBuilder()
@@ -38,7 +46,6 @@ func (k *Kube) List() (*[]KubeResource, error) {
 	for _, gvr := range gvrs {
 		resources, err := dynamicClient.Resource(gvr).Namespace("").List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			log.Warnf("could not find the requested resource '%v', skipping", gvr.Resource)
 			continue
 		}
 
@@ -58,5 +65,5 @@ func (k *Kube) List() (*[]KubeResource, error) {
 		}
 	}
 
-	return &krs, nil
+	return &krs, GetServerVersion(clientConfig), nil
 }

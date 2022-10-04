@@ -13,7 +13,6 @@ import (
 
 type Helm struct {
 	Releases    []Release `json:"releases" yaml:"releases"`
-	Kube        *kube.Kube
 	ArtifactHub *repositories.ArtifactHub
 }
 
@@ -30,30 +29,23 @@ type Release struct {
 }
 
 func New() (*Helm, error) {
-	k, err := kube.New()
-	if err != nil {
-		return nil, fmt.Errorf("could not instantiate Kube: %w", err)
-	}
-
 	return &Helm{
 		Releases:    []Release{},
-		Kube:        k,
 		ArtifactHub: repositories.NewArtifacthub(),
 	}, nil
 }
 
 // nolint: ineffassign, wastedassign
 func (h *Helm) getLatestChartVersion(rel *release.Release, release *Release) error {
-	latestVersion := "unknown"
-	repository := "unknown"
-
+	repository := "ArtifactHub"
 	latestVersion, err := h.ArtifactHub.GetChartLatestVersion(rel.Chart.Name())
 	if err != nil {
 		return fmt.Errorf("could not fetch latest chart version from Artifacthub: %w", err)
 	}
 
-	if latestVersion != "" {
-		repository = "ArtifactHub"
+	if latestVersion == "" {
+		repository = "unknown"
+		latestVersion = "unknown"
 	}
 
 	release.LatestChartVersion = latestVersion
@@ -63,21 +55,31 @@ func (h *Helm) getLatestChartVersion(rel *release.Release, release *Release) err
 }
 
 // List all the deployed helm charts in the current namespace or all namespaces in the current context
-func (h *Helm) List(allNamespaces bool) (*[]Release, error) {
-	log.Infof("Fetching helm releases from context: '%s'", h.Kube.Config.CurrentContext)
-
+func (h *Helm) List(kubeContext string, allNamespaces bool) (*[]Release, string, error) {
 	var deprecatedResources kube.DeprecatedResources
 	deprecatedResources.Load()
 
+	tmpKubeconfigPath, err := kube.GenerateTemporaryKubeconfig(kubeContext)
+	if err != nil {
+		return nil, "", fmt.Errorf("could not generate temporary kubeconfig: %w", err)
+	}
+
+	clientConfig, err := kube.CreateConfigClient(tmpKubeconfigPath).ClientConfig()
+	if err != nil {
+		log.Errorf("could not get clientset: %v", err)
+	}
+
 	settings := cli.New()
+	settings.KubeConfig = tmpKubeconfigPath
 	actionConfig := new(action.Configuration)
+
 	namespace := ""
 	if !allNamespaces {
 		namespace = settings.Namespace()
 	}
 
 	if err := actionConfig.Init(settings.RESTClientGetter(), namespace, "", log.Infof); err != nil {
-		return nil, fmt.Errorf("could not init helm action configuration: %w", err)
+		return nil, "", fmt.Errorf("could not init helm action configuration: %w", err)
 	}
 
 	client := action.NewList(actionConfig)
@@ -85,7 +87,7 @@ func (h *Helm) List(allNamespaces bool) (*[]Release, error) {
 
 	results, err := client.Run()
 	if err != nil {
-		return nil, fmt.Errorf("could not run helm list command: %w", err)
+		return nil, "", fmt.Errorf("could not run helm list command: %w", err)
 	}
 
 	for _, rel := range results {
@@ -100,7 +102,7 @@ func (h *Helm) List(allNamespaces bool) (*[]Release, error) {
 
 		// Fetch latest chart version from repositories
 		if err := h.getLatestChartVersion(rel, &release); err != nil {
-			return nil, fmt.Errorf("could not fetch latest chart version: %w", err)
+			return nil, "", fmt.Errorf("could not fetch latest chart version: %w", err)
 		}
 
 		// Parse deprecated resources from found manifests
@@ -110,5 +112,5 @@ func (h *Helm) List(allNamespaces bool) (*[]Release, error) {
 		h.Releases = append(h.Releases, release)
 	}
 
-	return &h.Releases, nil
+	return &h.Releases, kube.GetServerVersion(clientConfig), nil
 }

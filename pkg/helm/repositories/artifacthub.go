@@ -43,6 +43,7 @@ func (a *ArtifactHub) requestArtifacthub(chartName string) ([]byte, error) {
 	urlValues := url.Values{}
 	urlValues.Add("ts_query_web", chartName)
 	urlValues.Add("limit", "1")
+	urlValues.Add("kind", "0")
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", a.BaseURL, searchEndpoint), nil)
 	if err != nil {
@@ -76,6 +77,10 @@ func (a *ArtifactHub) GetChartLatestVersion(chartName string) (string, error) {
 	body, err := a.requestArtifacthub(chartName)
 	if err != nil {
 		return "", fmt.Errorf("error while trying to request artifacthub: %w", err)
+	}
+
+	if len(body) == 0 {
+		return "", nil
 	}
 
 	searchPackageResponse := SearchPackageResponse{}

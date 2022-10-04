@@ -1,13 +1,13 @@
 package kube
 
 import (
-	"os"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type DeprecatedResources struct {
@@ -49,7 +49,7 @@ func (d *DeprecatedResources) ManifestParser(m string) []*Resource {
 			}
 
 			if resource.Kind != "" {
-				for _, rs := range d.DeprecatedResources[resource.Kind] {
+				for _, rs := range d.DeprecatedResources[strings.ToLower(resource.Kind)] {
 					if rs.GroupVersion == resource.APIVersion {
 						resource.DeprecatedResource = rs
 						resources = append(resources, resource)
@@ -81,7 +81,7 @@ func (d *DeprecatedResources) GVRSBuilder() []schema.GroupVersionResource {
 
 // Parse GVRS
 func (d *DeprecatedResources) GVRSParser(r KubeResource) bool {
-	for _, rs := range d.DeprecatedResources[r.Kind] {
+	for _, rs := range d.DeprecatedResources[strings.ToLower(r.Kind)] {
 		if r.GroupVersion == rs.GroupVersion {
 			return true
 		}
@@ -90,16 +90,20 @@ func (d *DeprecatedResources) GVRSParser(r KubeResource) bool {
 	return false
 }
 
-// Load the deprecated API resources from YAML
+// Load the deprecated API resources from YAML file
 func (d *DeprecatedResources) Load() {
-	file, err := os.ReadFile(viper.GetString("deprek8.kube.resourcesFile"))
+	resources := viper.Get("deprek8.resources")
+	d.DeprecatedResources = make(map[string][]DeprecatedResource)
+
+	rawResources, err := yaml.Marshal(resources)
 	if err != nil {
-		log.Errorf("Could not open file: %v", err)
+		log.Errorf("Could not marshal resources: %v", err)
 		return
 	}
 
-	if err := yaml.Unmarshal(file, &d); err != nil {
-		log.Errorf("Could not unmarshal file: %v", err)
+	err = yaml.Unmarshal(rawResources, d.DeprecatedResources)
+	if err != nil {
+		log.Errorf("Could not unmarshal resources: %v", err)
 		return
 	}
 }

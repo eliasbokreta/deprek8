@@ -16,8 +16,4 @@ func TestLoadConfig(t *testing.T) {
 	if viper.GetString("deprek8.helm.repository.artifacthub.apiBaseUrl") != "https://artifacthub.io/api/v1" {
 		t.Fatal("'apiBaseUrl' config should be equal to 'https://artifacthub.io/api/v1'")
 	}
-
-	if viper.GetString("deprek8.helm.resourcesFile") != "./config/api.yaml" {
-		t.Fatal("'resourcesFile' config should be equal to './config/api.yaml'")
-	}
 }
