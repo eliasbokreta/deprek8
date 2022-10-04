@@ -62,18 +62,20 @@ deprek8 kube [--output outputType]
 -o, --output string              Choose type of output (json|yaml|text) (default "text")
 ```
 
-Switch Kubernetes context :
-```
-deprek8 context
-```
-
 ## Setup
-Build locally :
-```
-make build
-```
+- ### Build locally :
+  ```
+  make build
+  ```
 
-Update the binary to the latest version :
-```
-deprek8 update
-```
+- ### Build and install :
+  ```
+  make install
+  ```
+  > This command will build and install the binary into `/usr/local/bin`. It will also create a `.deprek8` directory in the user's home directory with the `config.yaml` config file.
+
+
+- ### Uninstall :
+  ```
+  make uninstall
+  ```
