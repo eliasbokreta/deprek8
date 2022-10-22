@@ -6,7 +6,6 @@ linters:
   enable:
     - asciicheck
     - bodyclose
-    - cyclop
     - depguard
     - dogsled
     - dupl
@@ -16,7 +15,6 @@ linters:
     - exhaustive
     - exportloopref
     - forcetypeassert
-    - funlen
     - gochecknoinits
     - gocognit
     - goconst
@@ -55,7 +53,9 @@ linters:
     - wastedassign
     - whitespace
   disable:
-    - noctx
+    - cyclop
+    - funlen
     - gochecknoglobals
     - gofumpt
+    - noctx
     - nolintlint

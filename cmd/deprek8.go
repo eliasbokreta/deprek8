@@ -9,15 +9,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var outputTypes = []string{
+	"json",
+	"yaml",
+	"text",
+}
+
 var (
-	filterDeprecated bool
-	filterChartName  string
+	outputType string
+	export     bool
 )
 
 var helmCmd = &cobra.Command{
 	Use:   "helm",
 	Short: "list helm releases",
-	Long:  `list helm releases in the current Kubernetes context`,
+	Long:  `list helm releases with deprecated objects`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if !utils.StringInSlice(outputType, outputTypes) {
 			return fmt.Errorf("--output must be one of %v", outputTypes)
@@ -26,11 +32,9 @@ var helmCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := deprek8.Config{
-			Action:           "helm",
-			AllNamespaces:    allNamespaces,
-			OutputType:       outputType,
-			FilterDeprecated: filterDeprecated,
-			FilterChartName:  filterChartName,
+			Action:      "helm",
+			OutputType:  outputType,
+			ExportToCSV: export,
 		}
 		d := deprek8.New(cfg)
 
@@ -43,12 +47,13 @@ var helmCmd = &cobra.Command{
 
 var kubeCmd = &cobra.Command{
 	Use:   "kube",
-	Short: "list Kube resources",
-	Long:  "list deprecated Kubernetes resources",
+	Short: "list Kube objects",
+	Long:  "list deprecated Kubernetes objects",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := deprek8.Config{
-			Action:     "kube",
-			OutputType: outputType,
+			Action:      "kube",
+			OutputType:  outputType,
+			ExportToCSV: export,
 		}
 		d := deprek8.New(cfg)
 
@@ -60,13 +65,11 @@ var kubeCmd = &cobra.Command{
 }
 
 func deprek8CmdInit() {
+	helmCmd.Flags().StringVarP(&outputType, "output", "o", "text", "Choose type of output (json|yaml|text)")
+	helmCmd.Flags().BoolVarP(&export, "export", "e", false, "Save output to csv file")
 	rootCmd.AddCommand(helmCmd)
 
 	kubeCmd.Flags().StringVarP(&outputType, "output", "o", "text", "Choose type of output (json|yaml|text)")
-
-	helmCmd.Flags().BoolVarP(&allNamespaces, "all-namespaces", "a", false, "Fetch data on all namespaces")
-	helmCmd.Flags().BoolVarP(&filterDeprecated, "filter-deprecated", "d", false, "Filter helm releases with deprecated k8s resources")
-	helmCmd.Flags().StringVarP(&filterChartName, "filter-name", "n", "", "Filter Helm chart's name")
-
+	kubeCmd.Flags().BoolVarP(&export, "export", "e", false, "Save output to csv file")
 	rootCmd.AddCommand(kubeCmd)
 }
