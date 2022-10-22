@@ -15,17 +15,14 @@ import (
 type Config struct {
 	Action           string
 	OutputType       string
-	AllNamespaces    bool
-	FilterDeprecated bool
-	FilterChartName  string
 	SelectedContexts []string
+	ExportToCSV      bool
 }
 
 type FinalOutput struct {
 	ClusterName   string
 	ServerVersion string
-	Releases      *[]helm.Release
-	KubeResources *[]kube.KubeResource
+	Resources     interface{}
 }
 
 func New(config Config) *Config {
@@ -58,7 +55,6 @@ func (c *Config) SelectContexts() error {
 	return nil
 }
 
-// nolint: cyclop,funlen,gocognit
 func (c *Config) Run() error {
 	if err := c.SelectContexts(); err != nil {
 		return fmt.Errorf("could not select new Kube context: %w", err)
@@ -75,6 +71,7 @@ func (c *Config) Run() error {
 				defer wg.Done()
 
 				output := FinalOutput{}
+				output.ClusterName = kctx
 
 				h, err := helm.New()
 				if err != nil {
@@ -82,35 +79,17 @@ func (c *Config) Run() error {
 					return
 				}
 
-				releases, serverVersion, err := h.List(kctx, c.AllNamespaces)
+				output.Resources, output.ServerVersion, err = h.List(kctx)
 				if err != nil {
-					log.Errorf("could not list helm releases for context '%v': %v", kctx, err)
+					log.Errorf("could not list Helm releases for context '%v': %v", kctx, err)
 					return
 				}
-
-				if c.FilterDeprecated {
-					releases = utils.FilterDeprecatedReleases(*releases)
-				}
-
-				if c.FilterChartName != "" {
-					releases = utils.FilterPerChartName(*releases, c.FilterChartName)
-				}
-
-				output.ClusterName = kctx
-				output.ServerVersion = serverVersion
-				output.Releases = releases
 
 				finalOutput = append(finalOutput, output)
 			}(kubeContext)
 		}
 		wg.Wait()
 
-		for _, r := range finalOutput {
-			log.Infof("Fetching helm releases from context: '%s' - Cluster version: '%s'", r.ClusterName, r.ServerVersion)
-			if err := utils.OutputResult(r.Releases, c.OutputType); err != nil {
-				log.Errorf("could not output helm releases: %v", err)
-			}
-		}
 	case "kube":
 		var wg sync.WaitGroup
 		for _, kubeContext := range c.SelectedContexts {
@@ -118,27 +97,31 @@ func (c *Config) Run() error {
 			go func(kctx string) {
 				defer wg.Done()
 
+				var err error
 				output := FinalOutput{}
+				output.ClusterName = kctx
 
-				resources, serverVersion, err := kube.List(kctx)
+				output.Resources, output.ServerVersion, err = kube.List(kctx)
 				if err != nil {
 					log.Errorf("could not list Kube resources: %v", err)
 					return
 				}
 
-				output.ClusterName = kctx
-				output.ServerVersion = serverVersion
-				output.KubeResources = resources
-
 				finalOutput = append(finalOutput, output)
 			}(kubeContext)
 		}
 		wg.Wait()
+	}
 
-		for _, r := range finalOutput {
-			log.Infof("Fetching Kubernetes resources from context: '%s' - Cluster version: '%s'", r.ClusterName, r.ServerVersion)
-			if err := utils.OutputResult(r.KubeResources, c.OutputType); err != nil {
-				return fmt.Errorf("could not output kube resources: %w", err)
+	for _, r := range finalOutput {
+		log.Infof("Fetching resources from context: '%s' - Cluster version: '%s'", r.ClusterName, r.ServerVersion)
+		if err := utils.OutputResult(r.Resources, c.OutputType); err != nil {
+			log.Errorf("could not output resources: %v", err)
+		}
+
+		if c.ExportToCSV {
+			if err := utils.SaveToCSV(r.ClusterName, r.Resources); err != nil {
+				log.Errorf("could not save data to file: %v", err)
 			}
 		}
 	}

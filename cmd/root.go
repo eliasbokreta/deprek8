@@ -9,16 +9,8 @@ import (
 	"github.com/spf13/cobra/doc"
 )
 
-var outputTypes = []string{
-	"json",
-	"yaml",
-	"text",
-}
-
 var (
-	allNamespaces bool
-	outputType    string
-	version       string
+	version string
 )
 
 var rootCmd = &cobra.Command{

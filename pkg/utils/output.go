@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	red   = "red"
-	green = "green"
+	red = "red"
 )
 
 // Output any struct to json or yaml
@@ -55,7 +54,7 @@ func OutputResult(data interface{}, outputType string) error {
 }
 
 func OutputHelm(releases []helm.Release) {
-	table := GetTableWriter([]string{"Namespace", "Repository", "Name", "Version", "Latest", "Deprecated"})
+	table := GetTableWriter([]string{"Namespace", "Repository", "Name", "Version", "Latest", "Deprecated Resources"})
 
 	for _, release := range releases {
 		line := []string{
@@ -64,32 +63,16 @@ func OutputHelm(releases []helm.Release) {
 			release.ChartName,
 			release.ChartVersion,
 			release.LatestChartVersion,
-			"",
-		}
-
-		isDeprecated := false
-		for i, resource := range release.Resources {
-			if resource != nil {
-				isDeprecated = true
-				line[5] += fmt.Sprintf("%s(%s)", resource.Kind, resource.DeprecatedResource.RemovalVersion)
-				if i < (len(release.Resources) - 1) {
-					line[5] += ","
-				}
-			}
-		}
-
-		color := green
-		if isDeprecated {
-			color = red
+			release.DeprecatedObjects,
 		}
 
 		colors := []tablewriter.Colors{
-			GetTableRowColor(color),
-			GetTableRowColor(color),
-			GetTableRowColor(color),
-			GetTableRowColor(color),
-			GetTableRowColor(color),
-			GetTableRowColor(color),
+			GetTableRowColor(red),
+			GetTableRowColor(red),
+			GetTableRowColor(red),
+			GetTableRowColor(red),
+			GetTableRowColor(red),
+			GetTableRowColor(red),
 		}
 
 		table.Rich(line, colors)

@@ -4,7 +4,7 @@
   <img src="./assets/logo.png" alt="Logo" width="128" height="128">
   <h1 align="center">deprek8</h3>
   <p align="center">
-    A CLI tool that allows to list deprecated Kubernetes resources Helm Chart and deployed Kubernetes objects.
+    A CLI tool that allows to list deprecated deployed Kubernetes resources from Helm or simply k8s objects.
   </p>
 </div>
 
@@ -35,31 +35,28 @@
 
 ## About The Project
 
-`deprek8` is a CLI tool that allows to :
-- List deployed Helm Charts with information about :
-  - Latest released chart version found in [Artifacthub](https://artifacthub.io/packages/search?kind=0&sort=relevance&page=1)
-  - Deprecated Kubernetes resource in deployed charts
+`deprek8` is a CLI tool that :
+- List deployed Helm Charts containing deprecated Kubernetes objects
 - List deprecated Kubernetes resources deployed in a cluster
 
 ## Usage
 
 - ### Helm
-List deployed Helm charts :
+List deprecated Helm charts resources :
 ```
-deprek8 helm [--output outputType] [--all-namespaces] [--filter-deprecated] [--filter-name chartName] [--filter-repository repositoryName]
+deprek8 helm [--output outputType] [--export]
 
--o, --output string              Choose type of output (json|yaml|text) (default "text")
--a, --all-namespaces             Fetch data on all namespaces
--d, --filter-deprecated          Filter helm releases with deprecated k8s resources
--n, --filter-name string         Filter Helm chart's name
+-o, --output string              Choose type of output (json|yaml|text) (default: "text")
+-e, --export bool                Save output to csv file (default: false)
 ```
 
 - ### Kubernetes
 List deprecated Kubernetes resources :
 ```
-deprek8 kube [--output outputType]
+deprek8 kube [--output outputType] [--export]
 
--o, --output string              Choose type of output (json|yaml|text) (default "text")
+-o, --output string              Choose type of output (json|yaml|text) (default: "text")
+-e, --export bool                Save output to csv file (default: false)
 ```
 
 ## Setup
